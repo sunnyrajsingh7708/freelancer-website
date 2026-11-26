@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <h2 id ="Clock"></h2>
+    <script>
+      function showTime() {
+        let time = new Date();
+        
+        document.getElementById("clock").innerHTML = time.toLocateTimeString();
+
+      }
+      showTime();
+      setInterval(showTime,1000)
+    </script>
+  </body>
+</html>

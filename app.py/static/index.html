@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f6f2">
+  <title>Seatline — Library seat finder</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #1d2b24;
+      --muted: #78827b;
+      --line: #e6e9e3;
+      --paper: #fff;
+      --canvas: #f5f6f2;
+      --green: #237a52;
+      --green-soft: #e8f4ec;
+      --amber: #a76b18;
+      --amber-soft: #fff3df;
+      --slate: #87918a;
+      --slate-soft: #eef0ed;
+      --shadow: 0 16px 44px rgba(32, 49, 39, .07);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-width: 320px; background: var(--canvas); color: var(--ink); }
+    button { font: inherit; }
+    .shell { max-width: 1440px; margin: 0 auto; padding: 0 42px 44px; }
+    .topbar { height: 82px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); }
+    .brand { display: flex; align-items: center; gap: 12px; font-size: 15px; font-weight: 760; letter-spacing: -.03em; }
+    .brand-mark { width: 35px; height: 35px; border-radius: 12px; display: grid; place-items: center; background: #e5eee7; color: var(--green); }
+    .brand-mark svg { width: 20px; }
+    .live { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12px; }
+    .live-dot { width: 8px; height: 8px; border-radius: 50%; background: #36a66a; box-shadow: 0 0 0 4px #e4f2e8; }
+    .intro { padding: 38px 0 24px; display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; }
+    .eyebrow { margin: 0 0 9px; color: var(--green); font-size: 11px; font-weight: 760; letter-spacing: .13em; text-transform: uppercase; }
+    h1 { margin: 0; font-size: clamp(29px, 3.6vw, 42px); line-height: 1.12; letter-spacing: -.055em; font-weight: 690; }
+    .subhead { margin: 11px 0 0; color: var(--muted); font-size: 14px; }
+    .updated { color: var(--muted); font-size: 12px; white-space: nowrap; padding-bottom: 4px; }
+    .summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+    .stat { min-height: 88px; padding: 17px 19px; background: var(--paper); border: 1px solid var(--line); border-radius: 14px; }
+    .stat-label { display: block; color: var(--muted); font-size: 12px; }
+    .stat-value { display: block; margin-top: 8px; font-size: 22px; line-height: 1; font-weight: 680; letter-spacing: -.04em; }
+    .stat-value small { color: var(--muted); font-size: 12px; font-weight: 500; letter-spacing: 0; }
+    .stat.available .stat-value { color: var(--green); }
+    .stat.occupied .stat-value { color: var(--amber); }
+    .stat.unknown .stat-value { color: var(--slate); }
+    .floor-tabs { display: flex; gap: 8px; margin-bottom: 17px; overflow-x: auto; padding-bottom: 2px; }
+    .floor-tab { border: 1px solid var(--line); background: rgba(255,255,255,.62); color: #647068; padding: 10px 15px; border-radius: 9px; cursor: pointer; font-size: 12px; font-weight: 620; white-space: nowrap; transition: .18s ease; }
+    .floor-tab:hover { border-color: #b7c8bb; color: var(--ink); }
+    .floor-tab[aria-selected="true"] { color: white; background: #274c37; border-color: #274c37; }
+    .content { display: grid; grid-template-columns: minmax(0, 1fr) 296px; align-items: start; gap: 19px; }
+    .card { background: var(--paper); border: 1px solid var(--line); border-radius: 15px; box-shadow: var(--shadow); }
+    .map-card { padding: 23px 24px 20px; min-width: 0; }
+    .card-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 15px; margin-bottom: 20px; }
+    h2 { margin: 0; font-size: 16px; letter-spacing: -.025em; font-weight: 680; }
+    .card-description { margin: 5px 0 0; font-size: 12px; color: var(--muted); line-height: 1.5; }
+    .capacity { color: var(--muted); font-size: 11px; white-space: nowrap; }
+    .map-scroll { overflow-x: auto; padding-bottom: 4px; }
+    .seat-map { min-width: 448px; display: grid; grid-template-columns: 28px repeat(5, minmax(29px, 1fr)) 18px repeat(5, minmax(29px, 1fr)); gap: 7px 6px; align-items: center; }
+    .column-label, .row-label { color: #9aa39c; font-size: 10px; text-align: center; }
+    .row-label { font-weight: 650; }
+    .seat { min-width: 0; height: 35px; border: 1px solid #e6e9e5; border-radius: 8px; background: #f4f5f2; color: #758078; cursor: pointer; font-size: 10px; font-weight: 650; transition: transform .12s, box-shadow .12s, border .12s; }
+    .seat:hover { transform: translateY(-1px); border-color: #b5c6b8; }
+    .seat.available { color: #237a52; background: var(--green-soft); border-color: #d3e8d9; }
+    .seat.occupied { color: #a76b18; background: var(--amber-soft); border-color: #f0dfc5; }
+    .seat.selected { outline: 2px solid #284d37; outline-offset: 2px; z-index: 1; }
+    .aisle { min-height: 1px; }
+    .legend { display: flex; flex-wrap: wrap; gap: 17px; align-items: center; margin-top: 20px; padding-top: 17px; border-top: 1px solid #eff0ed; }
+    .legend-item { display: flex; align-items: center; gap: 7px; color: #68746c; font-size: 11px; }
+    .legend-chip { width: 12px; height: 12px; border-radius: 4px; background: var(--slate-soft); border: 1px solid #e0e4df; }
+    .legend-chip.available { background: var(--green-soft); border-color: #d3e8d9; }
+    .legend-chip.occupied { background: var(--amber-soft); border-color: #f0dfc5; }
+    .side { display: grid; gap: 15px; }
+    .report-card { padding: 21px; }
+    .selected-seat { display: flex; align-items: center; justify-content: space-between; margin: 19px 0 15px; padding: 13px 14px; border: 1px solid var(--line); background: #fafbf9; border-radius: 10px; }
+    .selected-caption { color: var(--muted); font-size: 11px; }
+    .selected-name { font-size: 17px; font-weight: 720; letter-spacing: -.03em; }
+    .actions { display: grid; gap: 8px; }
+    .action { width: 100%; min-height: 39px; padding: 9px 11px; display: flex; justify-content: center; align-items: center; gap: 8px; border: 1px solid var(--line); border-radius: 9px; background: white; color: var(--ink); cursor: pointer; font-size: 11px; font-weight: 650; transition: .15s ease; }
+    .action:hover:not(:disabled) { border-color: #aabaae; transform: translateY(-1px); }
+    .action:disabled { opacity: .43; cursor: not-allowed; }
+    .action.primary { color: white; border-color: #2a6847; background: #2a6847; }
+    .action.primary:hover:not(:disabled) { background: #21573b; }
+    .action.neighbor { color: var(--green); background: var(--green-soft); border-color: #d5e8d9; }
+    .action.clear { color: #717a73; }
+    .action-icon { font-size: 14px; line-height: 1; }
+    .neighbor-note { margin: 12px 0 0; color: var(--muted); font-size: 10px; line-height: 1.55; }
+    .message { min-height: 16px; margin: 10px 0 0; color: var(--green); font-size: 11px; line-height: 1.45; }
+    .message.error { color: #a34235; }
+    .floors-card { padding: 20px 21px; }
+    .floor-list { display: grid; gap: 12px; margin-top: 17px; }
+    .floor-line { display: grid; grid-template-columns: 63px 1fr auto; align-items: center; gap: 9px; }
+    .floor-name { color: #657068; font-size: 11px; }
+    .bar { height: 6px; border-radius: 5px; background: #edf0ec; overflow: hidden; }
+    .bar-fill { height: 100%; background: #64a77b; border-radius: inherit; transition: width .25s ease; }
+    .floor-count { color: var(--green); font-size: 10px; font-weight: 650; }
+    .footnote { margin: 18px 0 0; padding-top: 13px; border-top: 1px solid #eff0ed; color: var(--muted); font-size: 10px; line-height: 1.55; }
+    .toast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 12px); opacity: 0; pointer-events: none; padding: 11px 16px; color: white; background: #263d2e; border-radius: 9px; box-shadow: 0 8px 26px #14271a33; font-size: 12px; transition: .2s ease; z-index: 5; }
+    .toast.show { transform: translate(-50%, 0); opacity: 1; }
+    @media (max-width: 980px) {
+      .shell { padding: 0 25px 35px; }
+      .content { grid-template-columns: minmax(0, 1fr) 268px; gap: 14px; }
+      .map-card { padding: 20px 17px; }
+      .seat-map { min-width: 410px; }
+    }
+    @media (max-width: 760px) {
+      .shell { padding: 0 18px 28px; }
+      .topbar { height: 68px; }
+      .intro { padding: 29px 0 20px; }
+      .updated { display: none; }
+      .summary { grid-template-columns: repeat(2, 1fr); gap: 9px; margin-bottom: 19px; }
+      .stat { min-height: 77px; padding: 14px; }
+      .content { grid-template-columns: 1fr; }
+      .side { grid-template-columns: 1fr 1fr; align-items: start; }
+      .map-card { padding: 19px 15px; }
+    }
+    @media (max-width: 520px) {
+      .side { grid-template-columns: 1fr; }
+      .floor-tabs { margin-right: -18px; }
+      .card-heading { margin-bottom: 15px; }
+      .capacity { font-size: 10px; }
+      .seat-map { min-width: 420px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M4.5 5.2c2.8-.9 5.3-.5 7.5 1.1v12c-2.2-1.6-4.7-2-7.5-1.1v-12Zm15 0c-2.8-.9-5.3-.5-7.5 1.1v12c2.2-1.6 4.7-2 7.5-1.1v-12Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>
+        </span>
+        <span>seatline</span>
+      </div>
+      <div class="live"><span class="live-dot"></span> Shared library board</div>
+    </header>
+
+    <main>
+      <section class="intro">
+        <div>
+          <p class="eyebrow">Your library, at a glance</p>
+          <h1>Find your next seat.</h1>
+          <p class="subhead">Check a floor, find an open spot, and help the next student.</p>
+        </div>
+        <div class="updated" id="lastUpdated">Connecting to the library board…</div>
+      </section>
+
+      <section class="summary" aria-label="Selected floor seat totals">
+        <div class="stat"><span class="stat-label">Total seats</span><strong class="stat-value">200 <small>on this floor</small></strong></div>
+        <div class="stat available"><span class="stat-label">Available</span><strong class="stat-value" id="availableCount">—</strong></div>
+        <div class="stat occupied"><span class="stat-label">Occupied</span><strong class="stat-value" id="occupiedCount">—</strong></div>
+        <div class="stat unknown"><span class="stat-label">Not reported</span><strong class="stat-value" id="unknownCount">—</strong></div>
+      </section>
+
+      <nav class="floor-tabs" aria-label="Choose a library floor" id="floorTabs"></nav>
+
+      <section class="content">
+        <section class="card map-card" aria-labelledby="mapTitle">
+          <div class="card-heading">
+            <div>
+              <h2 id="mapTitle">Floor 1 seat map</h2>
+              <p class="card-description">Select a seat to report its status or mark nearby seats available.</p>
+            </div>
+            <span class="capacity">20 rows · 10 seats</span>
+          </div>
+          <div class="map-scroll">
+            <div class="seat-map" id="seatMap" role="group" aria-label="Seat map"></div>
+          </div>
+          <div class="legend" aria-label="Seat status legend">
+            <span class="legend-item"><span class="legend-chip available"></span>Available</span>
+            <span class="legend-item"><span class="legend-chip occupied"></span>Occupied</span>
+            <span class="legend-item"><span class="legend-chip"></span>Not reported</span>
+            <span class="legend-item">Aisle after seat 5</span>
+          </div>
+        </section>
+
+        <aside class="side">
+          <section class="card report-card" aria-labelledby="reportTitle">
+            <h2 id="reportTitle">Update a seat</h2>
+            <p class="card-description">Choose your seat first, then share what you see.</p>
+            <div class="selected-seat">
+              <span class="selected-caption">Your selected seat</span>
+              <strong class="selected-name" id="selectedName">None</strong>
+            </div>
+            <div class="actions">
+              <button class="action primary" data-status="available" disabled><span class="action-icon">○</span> Mark this seat available</button>
+              <button class="action" data-status="occupied" disabled><span class="action-icon">●</span> Mark this seat occupied</button>
+              <button class="action neighbor" id="neighborButton" disabled><span class="action-icon">✳</span> Mark nearby seats available</button>
+              <button class="action clear" data-status="unknown" disabled>Clear this seat's report</button>
+            </div>
+            <p class="neighbor-note">Nearby means the seats directly in front, behind, left, and right of your selected seat.</p>
+            <p class="message" id="message" role="status" aria-live="polite"></p>
+          </section>
+
+          <section class="card floors-card" aria-labelledby="floorsTitle">
+            <h2 id="floorsTitle">All floors</h2>
+            <p class="card-description">Available seats reported on each floor.</p>
+            <div class="floor-list" id="floorList"></div>
+            <p class="footnote">Seat reports stay current for 1 hour, then return to “not reported.” Please update a seat if its status changes.</p>
+          </section>
+        </aside>
+      </section>
+    </main>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const FLOORS = 5;
+    const COLS = 10;
+    const ROWS = 20;
+    const REFRESH_MS = 15000;
+    let activeFloor = 1;
+    let selectedSeat = null;
+    let seatReports = new Map();
+    let refreshTimer;
+    let toastTimer;
+
+    const seatMap = document.getElementById("seatMap");
+    const message = document.getElementById("message");
+
+    function seatId(row, col) {
+      return `${String.fromCharCode(65 + row)}${col}`;
+    }
+
+    function makeSeatMap() {
+      seatMap.replaceChildren();
+      const corner = document.createElement("span");
+      seatMap.append(corner);
+      for (let col = 1; col <= COLS; col += 1) {
+        if (col === 6) {
+          const aisle = document.createElement("span");
+          aisle.className = "aisle";
+          seatMap.append(aisle);
+        }
+        const label = document.createElement("span");
+        label.className = "column-label";
+        label.textContent = col;
+        seatMap.append(label);
+      }
+
+      for (let row = 0; row < ROWS; row += 1) {
+        const rowLabel = document.createElement("span");
+        rowLabel.className = "row-label";
+        rowLabel.textContent = String.fromCharCode(65 + row);
+        seatMap.append(rowLabel);
+        for (let col = 1; col <= COLS; col += 1) {
+          if (col === 6) {
+            const aisle = document.createElement("span");
+            aisle.className = "aisle";
+            aisle.setAttribute("aria-hidden", "true");
+            seatMap.append(aisle);
+          }
+          const id = seatId(row, col);
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "seat";
+          button.dataset.seat = id;
+          button.setAttribute("aria-label", `Seat ${id}, not reported`);
+          button.title = `Seat ${id}: not reported`;
+          button.textContent = col;
+          button.addEventListener("click", () => {
+            selectedSeat = id;
+            message.textContent = "";
+            renderSelection();
+          });
+          seatMap.append(button);
+        }
+      }
+    }
+
+    function renderSelection() {
+      document.getElementById("selectedName").textContent = selectedSeat || "None";
+      document.querySelectorAll(".seat").forEach((button) => {
+        button.classList.toggle("selected", button.dataset.seat === selectedSeat);
+      });
+      document.querySelectorAll("[data-status]").forEach((button) => {
+        button.disabled = !selectedSeat;
+      });
+      document.getElementById("neighborButton").disabled = !selectedSeat;
+    }
+
+    function renderSeats(seats) {
+      seatReports = new Map(seats.map((seat) => [seat.id, seat]));
+      document.querySelectorAll(".seat").forEach((button) => {
+        const seat = seatReports.get(button.dataset.seat);
+        const status = seat?.status || "unknown";
+        button.classList.toggle("available", status === "available");
+        button.classList.toggle("occupied", status === "occupied");
+        const description = status === "unknown" ? "not reported" : status;
+        button.setAttribute("aria-label", `Seat ${button.dataset.seat}, ${description}`);
+        button.title = `Seat ${button.dataset.seat}: ${description}`;
+      });
+      renderSelection();
+    }
+
+    function renderFloorTabs() {
+      const tabs = document.getElementById("floorTabs");
+      tabs.replaceChildren();
+      for (let floor = 1; floor <= FLOORS; floor += 1) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "floor-tab";
+        button.textContent = `Floor ${floor}`;
+        button.setAttribute("aria-selected", String(floor === activeFloor));
+        button.addEventListener("click", () => {
+          activeFloor = floor;
+          selectedSeat = null;
+          message.textContent = "";
+          renderFloorTabs();
+          loadFloor();
+        });
+        tabs.append(button);
+      }
+    }
+
+    function renderFloors(floors) {
+      const list = document.getElementById("floorList");
+      list.replaceChildren();
+      floors.forEach((floor) => {
+        const line = document.createElement("div");
+        line.className = "floor-line";
+        const name = document.createElement("span");
+        name.className = "floor-name";
+        name.textContent = `Floor ${floor.floor}`;
+        const bar = document.createElement("div");
+        bar.className = "bar";
+        bar.setAttribute("aria-label", `${floor.available} available seats`);
+        const fill = document.createElement("div");
+        fill.className = "bar-fill";
+        fill.style.width = `${(floor.available / (ROWS * COLS)) * 100}%`;
+        bar.append(fill);
+        const count = document.createElement("span");
+        count.className = "floor-count";
+        count.textContent = `${floor.available} free`;
+        line.append(name, bar, count);
+        list.append(line);
+      });
+    }
+
+    function renderCounts(floor) {
+      document.getElementById("availableCount").textContent = floor.available;
+      document.getElementById("occupiedCount").textContent = floor.occupied;
+      document.getElementById("unknownCount").textContent = floor.unknown;
+    }
+
+    async function loadFloor() {
+      try {
+        const response = await fetch(`/api/seats?floor=${activeFloor}`, { cache: "no-store" });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Could not load seat information.");
+        renderSeats(data.seats);
+        renderCounts(data.floors.find((floor) => floor.floor === activeFloor));
+        renderFloors(data.floors);
+        document.getElementById("mapTitle").textContent = `Floor ${activeFloor} seat map`;
+        document.getElementById("lastUpdated").textContent = `Updated ${new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`;
+      } catch (error) {
+        message.textContent = error.message || "Could not connect to the library board.";
+        message.classList.add("error");
+        document.getElementById("lastUpdated").textContent = "Could not connect";
+      }
+    }
+
+    async function saveReports(reports, successMessage) {
+      message.textContent = "";
+      message.classList.remove("error");
+      try {
+        const response = await fetch("/api/report", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ floor: activeFloor, seats: reports })
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Could not save your update.");
+        message.textContent = successMessage;
+        await loadFloor();
+      } catch (error) {
+        message.textContent = error.message || "Could not save your update.";
+        message.classList.add("error");
+      }
+    }
+
+    document.querySelectorAll("[data-status]").forEach((button) => {
+      button.addEventListener("click", () => {
+        if (!selectedSeat) return;
+        const status = button.dataset.status;
+        const description = status === "unknown"
+          ? `Cleared the report for seat ${selectedSeat}.`
+          : `Marked seat ${selectedSeat} ${status}.`;
+        saveReports([{ id: selectedSeat, status }], description);
+      });
+    });
+
+    document.getElementById("neighborButton").addEventListener("click", () => {
+      if (!selectedSeat) return;
+      const row = selectedSeat.charCodeAt(0) - 65;
+      const col = Number(selectedSeat.slice(1));
+      const neighbors = [
+        [row - 1, col],
+        [row + 1, col],
+        [row, col - 1],
+        [row, col + 1]
+      ].filter(([neighborRow, neighborCol]) =>
+        neighborRow >= 0 && neighborRow < ROWS && neighborCol >= 1 && neighborCol <= COLS
+      );
+      if (!neighbors.length) {
+        message.textContent = "This seat has no neighboring seats on the map.";
+        return;
+      }
+      const reports = neighbors.map(([neighborRow, neighborCol]) => ({
+        id: seatId(neighborRow, neighborCol),
+        status: "available"
+      }));
+      saveReports(reports, `Marked ${reports.length} nearby seat${reports.length === 1 ? "" : "s"} available.`);
+    });
+
+    makeSeatMap();
+    renderFloorTabs();
+    loadFloor();
+    refreshTimer = window.setInterval(loadFloor, REFRESH_MS);
+    window.addEventListener("beforeunload", () => window.clearInterval(refreshTimer));
+  </script>
+</body>
+</html>

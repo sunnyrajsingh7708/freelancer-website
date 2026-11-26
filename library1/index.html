@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Library Seat Tracker</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <h1>Library seats, right now</h1>
+    <p>5 floors · 150 silent + 50 group seats each · 1 bookable discussion room per floor</p>
+    <div class="total">
+      <span id="totalSilent">0</span> silent free · <span id="totalGroup">0</span> group free
+    </div>
+  </header>
+
+  <main>
+    <section id="floors" class="floors" aria-live="polite"></section>
+
+    <section class="panel">
+      <h2>Update seats</h2>
+      <p>In the library? Tell others how many seats are free.</p>
+      <form id="seatForm">
+        <label>Floor <select id="seatFloor"></select></label>
+        <label>Seat type
+          <select id="seatType">
+            <option value="silent">Silent (max 150)</option>
+            <option value="group">Group / discussion (max 50)</option>
+          </select>
+        </label>
+        <label>Free seats <input id="seatFree" type="number" min="0" max="150" required></label>
+        <button type="submit">Save update</button>
+      </form>
+      <p id="seatMsg" class="message" role="status"></p>
+    </section>
+
+    <section class="panel">
+      <h2>Book a group study room</h2>
+      <p>One room per floor, booked by the hour for today.</p>
+      <form id="roomForm">
+        <label>Floor <select id="roomFloor"></select></label>
+        <label>Time <select id="roomSlot"></select></label>
+        <label>Your name <input id="roomName" type="text" maxlength="30" required></label>
+        <button type="submit">Book room</button>
+      </form>
+      <p id="roomMsg" class="message" role="status"></p>
+      <ul id="bookings" class="list"></ul>
+    </section>
+
+    <section class="panel">
+      <h2>Message board</h2>
+      <p>Tell everyone something, such as “Floor 3 AC is off”. Each message disappears after 24 hours.</p>
+      <form id="msgForm">
+        <label>Your name (optional) <input id="msgName" type="text" maxlength="30"></label>
+        <label class="wide">Message <textarea id="msgText" maxlength="200" rows="2" required></textarea></label>
+        <button type="submit">Send message</button>
+        <button type="button" id="notifyBtn" class="ghost">Turn on notifications</button>
+      </form>
+      <ul id="notices" class="list"></ul>
+    </section>
+  </main>
+
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <h1 id = "head1">This is heading</h1>
+  <p class="p1">Para 1</p>
+  <p class="p1">Para 2</p>
+  <p class="p1">Para 3</p>
+  <input type="button" name = "btn1" id="btn1" value="submit">
+
+ <div style="width: 150px; height: 150px; background-color: aqua"; id="div1">Div section</div>
+
+
+  <form action="">
+    <input type="text" name="fname" id="fname">
+    <input type="submit" name="btn1" id ="btn1">
+  </form>
+    <p id="msg"></p>
+  <script>
+    let myform = document.getElementById("myform");
+    myform.addEventListener("submit",()=>{
+      let fname = document.getElementById("fname").value;
+      let msg = document.getElementById("msg");
+      if(fname==""){
+        e.preventDefault();
+        msg.textContent="Please Enter name";
+        msg.style.color="red"
+
+      }
+      else{
+        alert("Thankl You for Submitting");
+      }
+    })
+
+    //let fname =document.getElementById("fname");
+    //fname.addEventListener("keydown",()=>{
+    //fname.style.backgroundcolor="pink";
+    //alert("Key pressed")
+ // })-->
+
+     //let fname =document.getElementById("fname");
+    //fname.addEventListener("keydown",()=>{
+      //fname.style.backgroundcolor="pink";
+      //document.getElementById("msg").textContent=event.target.value;
+      //alert("key pressed")
+    //})
+
+   
+
+
+
+
+    let d1 = document.getElementById("div1");
+
+    d1.addEventListener("mouseout",()=>{ //click,dblclick,mouseover
+      d1.style.backgroundColor="yellow";
+    })
+    let button1 = document.getElementById("btn1");
+    button1.onclick = function(){
+      //alert("welcome to my page");
+
+      let h1 = document.getElementById("head1");
+     // h1.innerText = "I LOVE SUNNY";
+     h1.innerHTML="<i> Sunny </i>";
+     h1.style.color = "yellow";
+     h1.style.backgroundColor="Red";
+    }
+
+
+
+    let heading1 = document.getElementById("head1");
+    console.log(heading1.textContent);
+
+    let para = document.getElementsByClassName("p1");
+    console.log(para[0].textContent);
+    console.log(para[1].textContent);
+    console.log(para[2].textContent);
+    console.log(para.length);
+
+    let paras = document.getElementsByTagName("p");
+    console.log(paras.length);
+
+    let a1 = document.querySelectorAll(".p1");
+    console.log(a1[0].textContent);
+    console.log(a1[1].textContent);
+
+
+
+
+
+    function calculate(a,b){
+      return a+b;
+    }
+    function highorder(callback){
+      console.log(callback(2,3));
+    }
+    highorder(calculate);
+  </script>
+</body>
+</html>

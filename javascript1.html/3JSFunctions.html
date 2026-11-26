@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <script>
+  function greetings(){
+    console.log("Good Noon");
+  }
+  greetings();
+  greetings();
+
+  function addition(a,b,c){
+    return (a+b+c);
+  }
+   console.log("The sum is: " + addition(2,3,4));
+  //Arrow function
+   const subtraction = (a,b,c) => {
+    return (a-b-c);
+   }
+   console.log("The difference is: " + subtraction(10,3,4));
+   
+   const greet = () => console.log("Good Evening");
+   greet();
+
+   //String function
+    const str1 = "  Java Script"; 
+    const str2="CSE326";
+    console.log("we are studying " + str1 + " in " + str2);
+
+    //String template
+    console.log(`we are studying ${str1} in ${str2}`);
+    
+   console.log(str1.indexOf("v"));
+   console.log(str1.charAt(4));
+   console.log(str1.length);
+   console.log(str1.trim());
+   console.log(str1.trim().length);
+   console.log(str1.toUpperCase());
+   console.log(str1.toLowerCase());
+   console.log(str1.includes("k"));
+   console.log(str1.slice(2,4));
+   console.log(str1.replace("J","Ta"));
+
+
+   //Array Methods
+   let array1 = ["a","b","c","d"];
+   array1.push("grapes");//add element at the end
+   console.log(array1);
+   array1.unshift("mango");//add element at the beginning
+   console.log(array1);
+
+    array1.pop();//remove last element
+    console.log(array1);
+
+    array1.shift();//remove first element
+    console.log(array1);
+
+    array1.slice(1,4);
+    console.log(array1.slice(1,3));
+    
+    array1.splice(2,2,"tomato","potato");//remove 2 elements from index 2 and add new elements  
+    console.log(array1);
+   //objects
+   let student = {
+    name: "Raj",
+    age: 1,
+    section: "K3P26NE",
+    "roll no.": 90,
+    info: function() {
+      console.log("the state of the student is punjab");
+    
+    }
+   }
+   console.log("The roll no. is: " + student["roll no."] + "name is: " + student.name);
+   student.info();
+   
+   function book(name,publisher){
+    this.name = name;
+    this.publisher = publisher; 
+   }
+   const b1 = new book("Python", "Pearson");
+   console.log(b1.name, b1.publisher);
+   const b2 = new book("DSA", "BPB");
+   console.log(b2.name, b2.publisher);
+
+
+   let marks = 80
+   if (marks<0 || marks>100) {
+    throw new Error("Invalid input");
+   }
+   console.log(marks);
+  }
+  catch(err){
+    console.log(err.message);
+  }
+  finally{
+    console.log("Done");
+  }
+  </script>
+  
+</body>
+</html>

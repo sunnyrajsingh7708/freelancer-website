@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Library Seat Tracker</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <h1>Library seats, right now</h1>
+    <p>Check a floor before you leave home. Updated by students like you.</p>
+    <div class="total">
+      <span id="totalFree">0</span> free of <span id="totalSeats">1000</span> seats
+    </div>
+  </header>
+
+  <main>
+    <section id="floors" class="floors" aria-live="polite"></section>
+
+    <section class="update" aria-labelledby="updateTitle">
+      <h2 id="updateTitle">Update a floor</h2>
+      <p>Already in the library? Tell others how many seats are free on your floor.</p>
+      <form id="updateForm">
+        <label>Floor
+          <select id="floorSelect"></select>
+        </label>
+        <label>Free seats (0–200)
+          <input id="freeInput" type="number" min="0" max="200" required>
+        </label>
+        <button type="submit">Save update</button>
+      </form>
+      <p id="message" class="message" role="status"></p>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
